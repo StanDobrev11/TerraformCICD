@@ -111,7 +111,7 @@ jobs:
       
       # Wait for 10 min for testing of the website
       - name: Sleep for testing
-        run: sleep 600
+        run: sleep 10
       
       # Destroy the app
       - name: Terraform destroy the app
