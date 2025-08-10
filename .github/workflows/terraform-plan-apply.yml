@@ -61,5 +61,5 @@ jobs:
       
       # Apply the plan
       - name : Terraform apply
-        run: terraform apply tfplan -var-file=terraform.tfvars -auto-approve-tfplan
+        run: terraform apply -auto-approve-tfplan
     
