@@ -6,9 +6,6 @@ on:
   pull_request:
 
 
-env:
-  A
-
 jobs:
   terraform-plan:
     runs-on: ubuntu-latest
@@ -73,5 +70,5 @@ jobs:
       # Apply the plan
       - name : Terraform apply
         run: terraform apply -auto-approve tfplan
-        
+
     
