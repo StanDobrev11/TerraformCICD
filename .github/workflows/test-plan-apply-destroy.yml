@@ -75,37 +75,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Checkout the repository to the GitHub Actions runner
-    - name: Checkout
-      uses: actions/checkout@v4
-    # Azure Login
-    - name: Azure login
-      uses: azure/login@v2
-      with:
-        creds: ${{secrets.AZURE_CREDENTIALS}}
-    
-    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v4
+      # Azure Login
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{secrets.AZURE_CREDENTIALS}}
+      
+      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-    - name: Terraform Init 
-      run: terraform init -reconfigure -backend-config=resource_group_name=${TF_BACKEND_RG_NAME} -backend-config=storage_account_name=${TF_BACKEND_STORAGE_ACCOUNT_NAME} -backend-config=container_name=${TF_BACKEND_CONTAINER_NAME} -backend-config=key=${TF_BACKEND_KEY}
+      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+      - name: Terraform Init 
+        run: terraform init -reconfigure -backend-config=resource_group_name=${TF_BACKEND_RG_NAME} -backend-config=storage_account_name=${TF_BACKEND_STORAGE_ACCOUNT_NAME} -backend-config=container_name=${TF_BACKEND_CONTAINER_NAME} -backend-config=key=${TF_BACKEND_KEY}
 
-    # Validate the main.tf
-    - name: Terraform Validate
-      run: terraform validate
+      # Validate the main.tf
+      - name: Terraform Validate
+        run: terraform validate
 
-    # Generates an execution plan for Terraform
-    - name: Terraform Plan
-      run: terraform plan -input=false -out=tfplan
+      # Generates an execution plan for Terraform
+      - name: Terraform Plan
+        run: terraform plan -input=false -out=tfplan
 
-    # Save the plan
-    - name: Save Terraform Plan
-      uses: actions/upload-artifact@v4
-      with:
-        name: terraform-plan
-        path: ./tfplan
+      # Save the plan
+      - name: Save Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: ./tfplan
 
   terraform-apply:
     name: Terraform Apply
