@@ -183,5 +183,5 @@ jobs:
         run: terraform destroy -auto-approve
       
       # Delete the tfstate storage container
-      -name: AZ delete group
+      - name: AZ delete group
         run: az group delete -n ${TF_BACKEND_RG_NAME} -y
