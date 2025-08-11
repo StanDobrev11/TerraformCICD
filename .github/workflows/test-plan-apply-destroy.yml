@@ -53,129 +53,135 @@ jobs:
       - name: Group exist check
         shell: bash
         run: | 
-            set -euo pipefail
-            if [ "$(az group exists -n "$TF_BACKEND_RG_NAME")" != "true" ]; then
-              az group create -n "$TF_BACKEND_RG_NAME" -l "$TF_BACKEND_LOCATION"
-            fi
-        
+          set -euo pipefail
+          if [ "$(az group exists -n "$TF_BACKEND_RG_NAME")" != "true" ]; then
+            az group create -n "$TF_BACKEND_RG_NAME" -l "$TF_BACKEND_LOCATION"
+          fi
       
-      # # Check for existing storage account and create if not exists
-      # - name: Storage Account exist check
-      #   shell: bash
-      #   run: [ $(az storage account check-name -n ${TF_BACKEND_STORAGE_ACCOUNT_NAME} --query "reason" -o tsv) = AlreadyExists ] || az storage account create -n ${TF_BACKEND_STORAGE_ACCOUNT_NAME} -g ${TF_BACKEND_RG_NAME} -l ${TF_BACKEND_LOCATION} --kind StorageV2 --sku Standard_LRS
+      # Check for existing storage account and create if not exists
+      - name: Storage Account exist check
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ $(az storage account check-name -n ${TF_BACKEND_STORAGE_ACCOUNT_NAME} --query "reason") != "AlreadyExists" ]; then
+            az storage account create -n ${TF_BACKEND_STORAGE_ACCOUNT_NAME} -g ${TF_BACKEND_RG_NAME} -l ${TF_BACKEND_LOCATION} --kind StorageV2 --sku Standard_LRS
+          fi
 
-      # # Check for existing container and create if not exists
-      # - name: Container Create existt check
-      #   shell: bash
-      #   run: [ $(az storage container exists -n ${TF_BACKEND_CONTAINER_NAME} --account-name ${TF_BACKEND_STORAGE_ACCOUNT_NAME} --query "exists" -o tsv) = true ] || az storage container create -n ${TF_BACKEND_CONTAINER_NAME} --account-name ${TF_BACKEND_STORAGE_ACCOUNT_NAME}
+      # Check for existing container and create if not exists
+      - name: Container Create existt check
+        shell: bash
+        run: |
+          if [ $(az storage container exists -n ${TF_BACKEND_CONTAINER_NAME} --account-name ${TF_BACKEND_STORAGE_ACCOUNT_NAME} --query "exists") != "true" ]; then
+            az storage container create -n ${TF_BACKEND_CONTAINER_NAME} --account-name ${TF_BACKEND_STORAGE_ACCOUNT_NAME}
+          fi
       
 
-  # terraform-plan:
-  #   name: Terraform Plan
-  #   needs: terraform-backend-setup
-  #   runs-on: ubuntu-latest
+  terraform-plan:
+    name: Terraform Plan
+    needs: terraform-backend-setup
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     # Checkout the repository to the GitHub Actions runner
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #     # Azure Login
-  #     - name: Azure login
-  #       uses: azure/login@v2
-  #       with:
-  #         creds: ${{secrets.AZURE_CREDENTIALS}}
+    steps:
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v4
+      # Azure Login
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{secrets.AZURE_CREDENTIALS}}
       
-  #     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-  #     - name: Setup Terraform
-  #       uses: hashicorp/setup-terraform@v3
+      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-  #     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-  #     - name: Terraform Init 
-  #       run: terraform init -reconfigure -backend-config=resource_group_name=${TF_BACKEND_RG_NAME} -backend-config=storage_account_name=${TF_BACKEND_STORAGE_ACCOUNT_NAME} -backend-config=container_name=${TF_BACKEND_CONTAINER_NAME} -backend-config=key=${TF_BACKEND_KEY}
+      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+      - name: Terraform Init 
+        run: terraform init -reconfigure -backend-config=resource_group_name=${TF_BACKEND_RG_NAME} -backend-config=storage_account_name=${TF_BACKEND_STORAGE_ACCOUNT_NAME} -backend-config=container_name=${TF_BACKEND_CONTAINER_NAME} -backend-config=key=${TF_BACKEND_KEY}
 
-  #     # Validate the main.tf
-  #     - name: Terraform Validate
-  #       run: terraform validate
+      # Validate the main.tf
+      - name: Terraform Validate
+        run: terraform validate
 
-  #     # Generates an execution plan for Terraform
-  #     - name: Terraform Plan
-  #       run: terraform plan -input=false -out=tfplan
+      # Generates an execution plan for Terraform
+      - name: Terraform Plan
+        run: terraform plan -input=false -out=tfplan
 
-  #     # Save the plan
-  #     - name: Save Terraform Plan
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: terraform-plan
-  #         path: ./tfplan
+      # Save the plan
+      - name: Save Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: ./tfplan
 
-  # terraform-apply:
-  #   name: Terraform Apply
-  #   needs: terraform-plan
-  #   runs-on: ubuntu-latest
+  terraform-apply:
+    name: Terraform Apply
+    needs: terraform-plan
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     # Checkout the repository to the GitHub Actions runner
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+    steps:
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #      # Azure Login
-  #     - name: Azure login
-  #       uses: azure/login@v2
-  #       with:
-  #         creds: ${{secrets.AZURE_CREDENTIALS}}
+       # Azure Login
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{secrets.AZURE_CREDENTIALS}}
           
-  #     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-  #     - name: Setup Terraform
-  #       uses: hashicorp/setup-terraform@v3
+      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-  #     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-  #     - name: Terraform Init
-  #       run: terraform init -reconfigure -backend-config=resource_group_name=${TF_BACKEND_RG_NAME} -backend-config=storage_account_name=${TF_BACKEND_STORAGE_ACCOUNT_NAME} -backend-config=container_name=${TF_BACKEND_CONTAINER_NAME} -backend-config=key=${TF_BACKEND_KEY}
+      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+      - name: Terraform Init
+        run: terraform init -reconfigure -backend-config=resource_group_name=${TF_BACKEND_RG_NAME} -backend-config=storage_account_name=${TF_BACKEND_STORAGE_ACCOUNT_NAME} -backend-config=container_name=${TF_BACKEND_CONTAINER_NAME} -backend-config=key=${TF_BACKEND_KEY}
       
-  #     # Download the plan
-  #     - name: Download Terraform Plan
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: terraform-plan
-  #         path: .
+      # Download the plan
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan
+          path: .
       
-  #     # Apply the plan
-  #     - name : Terraform apply
-  #       run: terraform apply -auto-approve tfplan
+      # Apply the plan
+      - name : Terraform apply
+        run: terraform apply -auto-approve tfplan
 
 
-  # terraform-destroy:
-  #   name: Terraform Destroy
-  #   needs: terraform-apply
-  #   runs-on: ubuntu-latest
+  terraform-destroy:
+    name: Terraform Destroy
+    needs: terraform-apply
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     # Checkout the repository to the GitHub Actions runner
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+    steps:
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #      # Azure Login
-  #     - name: Azure login
-  #       uses: azure/login@v2
-  #       with:
-  #         creds: ${{secrets.AZURE_CREDENTIALS}}
+       # Azure Login
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{secrets.AZURE_CREDENTIALS}}
           
-  #     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-  #     - name: Setup Terraform
-  #       uses: hashicorp/setup-terraform@v3
+      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-  #     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-  #     - name: Terraform Init
-  #       run: terraform init -reconfigure -backend-config=resource_group_name=${TF_BACKEND_RG_NAME} -backend-config=storage_account_name=${TF_BACKEND_STORAGE_ACCOUNT_NAME} -backend-config=container_name=${TF_BACKEND_CONTAINER_NAME} -backend-config=key=${TF_BACKEND_KEY}
+      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+      - name: Terraform Init
+        run: terraform init -reconfigure -backend-config=resource_group_name=${TF_BACKEND_RG_NAME} -backend-config=storage_account_name=${TF_BACKEND_STORAGE_ACCOUNT_NAME} -backend-config=container_name=${TF_BACKEND_CONTAINER_NAME} -backend-config=key=${TF_BACKEND_KEY}
             
-  #     # Wait for 10 min for testing of the website
-  #     - name: Sleep for testing
-  #       run: sleep 10
+      # Wait for 10 min for testing of the website
+      - name: Sleep for testing
+        run: sleep 10
       
-  #     # Destroy the app
-  #     - name: Terraform destroy the app
-  #       run: terraform destroy -auto-approve
+      # Destroy the app
+      - name: Terraform destroy the app
+        run: terraform destroy -auto-approve
       
-  #     # Delete the tfstate storage container
-  #     -name: AZ delete group
-  #       run: az group delete -n ${TF_BACKEND_RG_NAME} -y
+      # Delete the tfstate storage container
+      -name: AZ delete group
+        run: az group delete -n ${TF_BACKEND_RG_NAME} -y
