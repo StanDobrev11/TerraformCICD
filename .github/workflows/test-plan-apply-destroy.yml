@@ -49,12 +49,13 @@ jobs:
         uses: azure/login@v2
         with:
           creds: ${{secrets.AZURE_CREDENTIALS}}
+
       # Check for existing storage group and create if not exist
       - name: Group exist check
         shell: bash
         run: | 
           set -euo pipefail
-          if [ "$(az group exists -n "$TF_BACKEND_RG_NAME")" != "true" ]; then
+          if [ "$(az group exists -n "$TF_BACKEND_RG_NAME")" != true ]; then
             az group create -n "$TF_BACKEND_RG_NAME" -l "$TF_BACKEND_LOCATION"
           fi
       
@@ -65,7 +66,7 @@ jobs:
           set -euo pipefail
           if [ "$(az storage account check-name \
                   -n "${TF_BACKEND_STORAGE_ACCOUNT_NAME}" \
-                  --query 'nameAvailable' -o tsv)" = "true" ]; then
+                  --query "nameAvailable")" = true ]; then
             az storage account create \
               -n "${TF_BACKEND_STORAGE_ACCOUNT_NAME}" \
               -g "${TF_BACKEND_RG_NAME}" \
@@ -83,11 +84,11 @@ jobs:
                   -n "${TF_BACKEND_CONTAINER_NAME}" \
                   --account-name "${TF_BACKEND_STORAGE_ACCOUNT_NAME}" \
                   --auth-mode login \
-                  --query 'exists' -o tsv)" != "true" ]; then
+                  --query "exists")" != true ]; then
             az storage container create \
               -n "${TF_BACKEND_CONTAINER_NAME}" \
               --account-name "${TF_BACKEND_STORAGE_ACCOUNT_NAME}" \
-              --auth-mode login
+              # --auth-mode login
           fi
       
   terraform-plan:
