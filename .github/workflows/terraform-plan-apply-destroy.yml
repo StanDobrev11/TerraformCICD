@@ -80,7 +80,6 @@ jobs:
         run: terraform apply -auto-approve tfplan
 
 
-
   terraform-destroy:
     name: Terraform Destroy
     needs: terraform-apply
@@ -104,21 +103,12 @@ jobs:
       # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
       - name: Terraform Init
         run: terraform init
-      
-      # Download the plan
-      - name: Download Terraform Plan
-        uses: actions/download-artifact@v4
-        with:
-          name: terraform-plan
-          path: .
-      
+            
       # Wait for 10 min for testing of the website
       - name: Sleep for testing
-        run: sleep 600
+        run: sleep 10
       
       # Destroy the app
       - name: Terraform destroy the app
-        run: terraform destroy -auto-approve tfplan
-
-
+        run: terraform destroy -auto-approve
     
