@@ -59,23 +59,37 @@ jobs:
           fi
       
       # Check for existing storage account and create if not exists
-      - name: Storage Account exist check
+      - name: Ensure storage account exists
         shell: bash
         run: |
           set -euo pipefail
-          if [ $(az storage account check-name -n ${TF_BACKEND_STORAGE_ACCOUNT_NAME} --query "reason") != "AlreadyExists" ]; then
-            az storage account create -n ${TF_BACKEND_STORAGE_ACCOUNT_NAME} -g ${TF_BACKEND_RG_NAME} -l ${TF_BACKEND_LOCATION} --kind StorageV2 --sku Standard_LRS
+          if [ "$(az storage account check-name \
+                  -n "${TF_BACKEND_STORAGE_ACCOUNT_NAME}" \
+                  --query 'nameAvailable' -o tsv)" = "true" ]; then
+            az storage account create \
+              -n "${TF_BACKEND_STORAGE_ACCOUNT_NAME}" \
+              -g "${TF_BACKEND_RG_NAME}" \
+              -l "${TF_BACKEND_LOCATION}" \
+              --kind StorageV2 \
+              --sku Standard_LRS
           fi
 
       # Check for existing container and create if not exists
-      - name: Container Create existt check
+      - name: Ensure container exists (AAD/RBAC)
         shell: bash
         run: |
-          if [ $(az storage container exists -n ${TF_BACKEND_CONTAINER_NAME} --account-name ${TF_BACKEND_STORAGE_ACCOUNT_NAME} --query "exists") != "true" ]; then
-            az storage container create -n ${TF_BACKEND_CONTAINER_NAME} --account-name ${TF_BACKEND_STORAGE_ACCOUNT_NAME}
+          set -euo pipefail
+          if [ "$(az storage container exists \
+                  -n "${TF_BACKEND_CONTAINER_NAME}" \
+                  --account-name "${TF_BACKEND_STORAGE_ACCOUNT_NAME}" \
+                  --auth-mode login \
+                  --query 'exists' -o tsv)" != "true" ]; then
+            az storage container create \
+              -n "${TF_BACKEND_CONTAINER_NAME}" \
+              --account-name "${TF_BACKEND_STORAGE_ACCOUNT_NAME}" \
+              --auth-mode login
           fi
       
-
   terraform-plan:
     name: Terraform Plan
     needs: terraform-backend-setup
