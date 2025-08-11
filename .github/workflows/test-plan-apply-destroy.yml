@@ -30,7 +30,6 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
       
-
       # Checks that all Terraform configuration files adhere to a canonical format
       - name: Terraform Format
         run: terraform fmt -check -recursive
@@ -53,7 +52,12 @@ jobs:
       # Check for existing storage group and create if not exist
       - name: Group exist check
         shell: bash
-        run: az group exists -n ${TF_BACKEND_RG_NAME} || az group create -n ${TF_BACKEND_RG_NAME} -l ${TF_BACKEND_LOCATION}
+        run: | 
+            set -euo pipefail
+            if [ "$(az group exists -n "$TF_BACKEND_RG_NAME")" != "true" ]; then
+              az group create -n "$TF_BACKEND_RG_NAME" -l "$TF_BACKEND_LOCATION"
+            fi
+        
       
       # # Check for existing storage account and create if not exists
       # - name: Storage Account exist check
