@@ -1,114 +1,114 @@
-name: 'Terraform Plan Apply Destroy'
+# name: 'Terraform Plan Apply Destroy'
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
+# on:
+#   push:
+#     branches: [ "main" ]
+#   pull_request:
 
-env:
-  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+# env:
+#   AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+#   AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+#   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-jobs:
-  terraform-plan:
-    name: Terraform Plan
-    runs-on: ubuntu-latest
+# jobs:
+#   terraform-plan:
+#     name: Terraform Plan
+#     runs-on: ubuntu-latest
 
-    steps:
-    # Checkout the repository to the GitHub Actions runner
-    - name: Checkout
-      uses: actions/checkout@v4
-    # Azure Login
-    - name: Azure login
-      uses: azure/login@v2
-      with:
-        creds: ${{secrets.AZURE_CREDENTIALS}}
+#     steps:
+#     # Checkout the repository to the GitHub Actions runner
+#     - name: Checkout
+#       uses: actions/checkout@v4
+#     # Azure Login
+#     - name: Azure login
+#       uses: azure/login@v2
+#       with:
+#         creds: ${{secrets.AZURE_CREDENTIALS}}
     
-    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
+#     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+#     - name: Setup Terraform
+#       uses: hashicorp/setup-terraform@v3
 
-    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-    - name: Terraform Init
-      run: terraform init
+#     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+#     - name: Terraform Init
+#       run: terraform init
 
-    # Generates an execution plan for Terraform
-    - name: Terraform Plan
-      run: terraform plan -input=false -out=tfplan
+#     # Generates an execution plan for Terraform
+#     - name: Terraform Plan
+#       run: terraform plan -input=false -out=tfplan
 
-    # Save the plan
-    - name: Save Terraform Plan
-      uses: actions/upload-artifact@v4
-      with:
-        name: terraform-plan
-        path: ./tfplan
+#     # Save the plan
+#     - name: Save Terraform Plan
+#       uses: actions/upload-artifact@v4
+#       with:
+#         name: terraform-plan
+#         path: ./tfplan
 
-  terraform-apply:
-    name: Terraform Apply
-    needs: terraform-plan
-    runs-on: ubuntu-latest
+#   terraform-apply:
+#     name: Terraform Apply
+#     needs: terraform-plan
+#     runs-on: ubuntu-latest
 
-    steps:
-      # Checkout the repository to the GitHub Actions runner
-      - name: Checkout
-        uses: actions/checkout@v4
+#     steps:
+#       # Checkout the repository to the GitHub Actions runner
+#       - name: Checkout
+#         uses: actions/checkout@v4
 
-       # Azure Login
-      - name: Azure login
-        uses: azure/login@v2
-        with:
-          creds: ${{secrets.AZURE_CREDENTIALS}}
+#        # Azure Login
+#       - name: Azure login
+#         uses: azure/login@v2
+#         with:
+#           creds: ${{secrets.AZURE_CREDENTIALS}}
           
-      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+#       # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v3
 
-      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-      - name: Terraform Init
-        run: terraform init
+#       # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+#       - name: Terraform Init
+#         run: terraform init
       
-      # Download the plan
-      - name: Download Terraform Plan
-        uses: actions/download-artifact@v4
-        with:
-          name: terraform-plan
-          path: .
+#       # Download the plan
+#       - name: Download Terraform Plan
+#         uses: actions/download-artifact@v4
+#         with:
+#           name: terraform-plan
+#           path: .
       
-      # Apply the plan
-      - name : Terraform apply
-        run: terraform apply -auto-approve tfplan
+#       # Apply the plan
+#       - name : Terraform apply
+#         run: terraform apply -auto-approve tfplan
 
 
-  terraform-destroy:
-    name: Terraform Destroy
-    needs: terraform-apply
-    runs-on: ubuntu-latest
+#   terraform-destroy:
+#     name: Terraform Destroy
+#     needs: terraform-apply
+#     runs-on: ubuntu-latest
 
-    steps:
-      # Checkout the repository to the GitHub Actions runner
-      - name: Checkout
-        uses: actions/checkout@v4
+#     steps:
+#       # Checkout the repository to the GitHub Actions runner
+#       - name: Checkout
+#         uses: actions/checkout@v4
 
-       # Azure Login
-      - name: Azure login
-        uses: azure/login@v2
-        with:
-          creds: ${{secrets.AZURE_CREDENTIALS}}
+#        # Azure Login
+#       - name: Azure login
+#         uses: azure/login@v2
+#         with:
+#           creds: ${{secrets.AZURE_CREDENTIALS}}
           
-      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+#       # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v3
 
-      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-      - name: Terraform Init
-        run: terraform init
+#       # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+#       - name: Terraform Init
+#         run: terraform init
             
-      # Wait for 10 min for testing of the website
-      - name: Sleep for testing
-        run: sleep 10
+#       # Wait for 10 min for testing of the website
+#       - name: Sleep for testing
+#         run: sleep 10
       
-      # Destroy the app
-      - name: Terraform destroy the app
-        run: terraform destroy -auto-approve
+#       # Destroy the app
+#       - name: Terraform destroy the app
+#         run: terraform destroy -auto-approve
     
