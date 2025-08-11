@@ -74,10 +74,13 @@ jobs:
         with:
           name: terraform-plan
           path: .
-
+      
       # Apply the plan
       - name : Terraform apply
         run: terraform apply -auto-approve tfplan
+
+
+
   terraform-destroy:
     name: Terraform Destroy
     needs: terraform-apply
